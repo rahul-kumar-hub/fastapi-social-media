@@ -58,6 +58,6 @@ class PaginatedPostsResponse(BaseModel):
     total: int
     page: int
     size: int
-    total_page:int
+    total_pages:int
     has_next:bool
     has_previous:bool

@@ -40,35 +40,62 @@ def create_post(
     response_model=PaginatedPostsResponse,
 )
 def get_posts(
-    db:Annotated[Session,Depends(get_db)],
+    db: Annotated[Session, Depends(get_db)],
     page: Annotated[int, Query(ge=1)] = 1,
     size: Annotated[int, Query(ge=1, le=100)] = 10,
     sort: Annotated[str, Query(pattern="^(newest|oldest)$")] = "newest",
+    author_id: Annotated[int | None, Query(ge=1)] = None,
 ):
-    count_result = db.execute(
-        select(func.count(models.Post.id))
-    )
-    total = count_result.scalar_one()
-    total_pages = math.ceil(total / size)
-    has_next = page<total_pages
-    has_previous = page>1
+    # Calculate offset
+    offset = (page - 1) * size
+    # Count Query
+    count_query = select(func.count(models.Post.id))
 
-    result = db.execute(
-    select(models.Post)
-    .options(selectinload(models.Post.author))
-    .order_by(models.Post.date_posted.desc())
-    .offset((page - 1) * size)
-    .limit(size)
-)
+    if author_id is not None:
+        count_query = count_query.where(
+            models.Post.user_id == author_id
+        )
+    total = db.execute(count_query).scalar_one()
+    # Pagination Metadata
+    total_pages = math.ceil(total / size) if total else 1
+
+    has_next = page < total_pages
+    has_previous = page > 1
+    # Sorting
+    if sort == "newest":
+        order = models.Post.date_posted.desc()
+    else:
+        order = models.Post.date_posted.asc()
+    # Build Query
+    query = (
+        select(models.Post)
+        .options(selectinload(models.Post.author))
+    )
+    # Optional Filter
+    if author_id is not None:
+        query = query.where(
+            models.Post.user_id == author_id
+        )
+    # Sorting + Pagination
+    query = (
+        query
+        .order_by(order)
+        .offset(offset)
+        .limit(size)
+    )
+    # Execute Query
+    result = db.execute(query)
+
     posts = result.scalars().all()
+    # Response
     return PaginatedPostsResponse(
         items=posts,
         total=total,
         page=page,
         size=size,
-        total_page=total_pages,
-        has_next=page < total_pages,
-        has_previous=page > 1
+        total_pages=total_pages,
+        has_next=has_next,
+        has_previous=has_previous,
     )
 
 @router.get("/{post_id}", response_model=PostResponse)
