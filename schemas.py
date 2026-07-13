@@ -49,7 +49,7 @@ class PostResponse(PostBase):
     user_id:int
     date_posted:datetime
     author: UserPublic
-class PostUpdate(BaseModel):
+class PostUpdate(BaseModel):  
     title: str | None = Field(default=None, min_length=1, max_length=100)
     content: str | None = Field(default=None, min_length=1)
 
@@ -61,3 +61,15 @@ class PaginatedPostsResponse(BaseModel):
     total_pages:int
     has_next:bool
     has_previous:bool
+
+class CommentBase(BaseModel):
+    content: str = Field(min_length=1)
+class CommentCreate(CommentBase):
+    pass
+class CommentUpdate(BaseModel):
+    content: str | None = Field(default=None, min_length=1)
+class CommentResponse(CommentBase):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    date_posted: datetime
+    author: UserResponse

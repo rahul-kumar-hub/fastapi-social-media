@@ -35,6 +35,9 @@ class User(Base):
     posts: Mapped[list[Post]] = relationship(
        back_populates="author",
     )
+    comments: Mapped[list[Comment]] = relationship(
+        back_populates="author"
+    )
     @property
     def image_path(self) -> str:
         if self.image_file:
@@ -68,4 +71,41 @@ class Post(Base):
     )
     author: Mapped[User] = relationship(
         back_populates="posts",
+    )
+    comments: Mapped[list[Comment]] = relationship(
+        back_populates="post",
+    )
+
+class Comment(Base):
+    __tablename__ = "comments"
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        index=True,
+    )
+    content: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+    )
+    date_posted: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        nullable=False,
+    )
+    post_id: Mapped[int] = mapped_column(
+        ForeignKey("posts.id"),
+        nullable=False,
+        index=True,
+    )
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id"),
+        nullable=False,
+        index=True,
+    )
+    author: Mapped[User] = relationship(
+        back_populates="comments",
+    )
+    post: Mapped[Post] = relationship(
+        back_populates="comments",
     )
