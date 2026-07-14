@@ -1,3 +1,4 @@
+from __future__ import annotations
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 # ConfigDict -> through this  FASTAPI convert SQLAlchemy objects into JSON automatically
@@ -49,7 +50,7 @@ class PostResponse(PostBase):
     user_id:int
     date_posted:datetime
     author: UserPublic
-    likes_count:int=0
+    # likes_count:int=0
 class PostUpdate(BaseModel):  
     title: str | None = Field(default=None, min_length=1, max_length=100)
     content: str | None = Field(default=None, min_length=1)
