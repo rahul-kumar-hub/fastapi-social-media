@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, Depends
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import select
+from sqlalchemy import select,func
 from sqlalchemy.orm import Session
 from database import Base,engine,get_db
 import models
@@ -27,11 +27,17 @@ def home(
         .order_by(models.Post.date_posted.desc())
     )
     posts = result.scalars().all()
+    total_posts = db.scalar(select(func.count(models.Post.id)))
+    total_users = db.scalar(select(func.count(models.User.id)))
+    total_comments = db.scalar(select(func.count(models.Comment.id)))
     return templates.TemplateResponse(
         request,
         "home.html",
         {
             "title": "BlogSphere",
-            "posts": posts
+            "posts": posts,
+            "total_posts": total_posts,
+            "total_users": total_users,
+            "total_comments": total_comments
         }
-    )
+)

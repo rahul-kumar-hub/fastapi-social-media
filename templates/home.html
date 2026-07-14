@@ -29,15 +29,13 @@
 
             <div class="mt-4">
 
-                <a href="#posts"
-                   class="btn btn-primary btn-lg me-3">
+                <a href="#posts" class="btn btn-primary btn-lg me-3">
 
                     Start Reading
 
                 </a>
 
-                <a href="/posts/create"
-                   class="btn btn-outline-dark btn-lg">
+                <a href="/posts/create" class="btn btn-outline-dark btn-lg">
 
                     Create Post
 
@@ -61,10 +59,104 @@
 
         <div class="col-lg-6 text-center">
 
-            <img
-                src="https://images.unsplash.com/photo-1455390582262-044cdead277a?w=700"
-                class="img-fluid rounded-4 hero-image"
-                alt="Writing">
+            <img src="/static/icons/hero.jpg" class="img-fluid rounded-4 hero-image" alt="BlogSphere Hero">
+
+        </div>
+
+    </div>
+
+</section>
+<!-- Statistics -->
+
+<section class="py-5">
+
+    <div class="row text-center">
+
+        <div class="col-md-3">
+
+            <div class="stats-card">
+
+                <i class="fa-solid fa-newspaper fa-2x text-primary mb-3"></i>
+
+                <h2 class="fw-bold">
+
+                    {{ total_posts }}
+
+                </h2>
+
+                <p class="text-muted">
+
+                    Posts
+
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="stats-card">
+
+                <i class="fa-solid fa-user-pen fa-2x text-success mb-3"></i>
+
+                <h2 class="fw-bold">
+
+                    {{ total_users }}
+
+                </h2>
+
+                <p class="text-muted">
+
+                    Writers
+
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="stats-card">
+
+                <i class="fa-solid fa-users fa-2x text-warning mb-3"></i>
+
+                <h2 class="fw-bold">
+
+                    1200+
+
+                </h2>
+
+                <p class="text-muted">
+
+                    Readers
+
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <div class="stats-card">
+
+                <i class="fa-solid fa-comments fa-2x text-danger mb-3"></i>
+
+                <h2 class="fw-bold">
+
+                    {{ total_comments }}
+
+                </h2>
+
+                <p class="text-muted">
+
+                    Comments
+
+                </p>
+
+            </div>
 
         </div>
 
