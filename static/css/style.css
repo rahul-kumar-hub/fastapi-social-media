@@ -1,4 +1,42 @@
-body {
-    font-family: Arial;
-    padding: 20px;
+body{
+    background:#f8fafc;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+.post-card{
+
+    border-radius:18px;
+
+    transition:.3s;
+
+    overflow:hidden;
+
+}
+
+.post-card:hover{
+
+    transform:translateY(-8px);
+
+    box-shadow:0 18px 35px rgba(0,0,0,.15);
+
+}
+
+.post-image{
+
+    height:220px;
+
+    object-fit:cover;
+
+}
+
+.card-title{
+
+    color:#1e293b;
+
+}
+
+footer{
+
+    margin-top:80px;
+
 }
