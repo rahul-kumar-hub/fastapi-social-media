@@ -40,3 +40,25 @@ footer{
     margin-top:80px;
 
 }
+.hero-section{
+
+    padding-top:80px;
+    padding-bottom:80px;
+
+}
+
+.hero-image{
+
+    border-radius:25px;
+
+    box-shadow:0 20px 40px rgba(0,0,0,.15);
+
+    transition:.4s;
+
+}
+
+.hero-image:hover{
+
+    transform:scale(1.03);
+
+}
