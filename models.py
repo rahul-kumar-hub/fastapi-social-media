@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 from sqlalchemy import DateTime,ForeignKey, Integer, String, Text
 from sqlalchemy.orm import  Mapped, mapped_column, relationship
 from database import Base
+from sqlalchemy import UniqueConstraint
 
 class User(Base):
     __tablename__ = "users"
@@ -38,6 +39,10 @@ class User(Base):
     comments: Mapped[list[Comment]] = relationship(
         back_populates="author"
     )
+    likes: Mapped[list[Like]] = relationship(
+        back_populates="user"
+    )
+
     @property
     def image_path(self) -> str:
         if self.image_file:
@@ -75,6 +80,9 @@ class Post(Base):
     comments: Mapped[list[Comment]] = relationship(
         back_populates="post",
     )
+    likes: Mapped[list[Like]] = relationship(
+        back_populates="post",
+    )
 
 class Comment(Base):
     __tablename__ = "comments"
@@ -109,3 +117,35 @@ class Comment(Base):
     post: Mapped[Post] = relationship(
         back_populates="comments",
     )
+
+class Like(Base):
+    __tablename__ = "likes"
+    __table_args__=(
+        UniqueConstraint(
+            "user_id",
+            "post_id",
+           name = "uq_user_post_like",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        index=True,
+    )
+    user_id: Mapped[int] =mapped_column(
+        ForeignKey("users.id"),
+        nullable=False,
+        index=True, 
+    )
+    post_id: Mapped[int] = mapped_column(
+        ForeignKey("posts.id"),
+        nullable=False,
+        index=True,
+    )
+    user: Mapped[User] =relationship(
+        back_populates="likes",
+    )
+    post: Mapped[Post] = relationship(
+        back_populates="likes",
+)

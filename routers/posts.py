@@ -173,3 +173,42 @@ def delete_post(post_id: int, current_user:CurrentUser,db: Annotated[Session, De
         )
     db.delete(post)
     db.commit()
+
+@router.post(
+    "/posts/{post_id}/like",
+)
+def toggle_like(post_id:int,
+    current_user: CurrentUser,
+    db: Annotated[Session, Depends(get_db)],
+):
+    post = db.get(models.Post,post_id)
+    if post is None:
+        raise HTTPException(
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail="post not found",
+        )
+    result = db.execute(
+        select(models.Like)
+        .where(models.Like.user_id==current_user.id, models.Like.post_id==post_id)
+    )
+    existing_like = result.scalar_one_or_none()
+    if existing_like:
+        db.delete(existing_like)
+        message = "Post unliked"
+    else:
+        like = models.Like(
+            user=current_user,
+            post=post,
+        )
+        db.add(like)
+        message = "Post liked"
+
+    db.commit()
+    count = db.execute(
+        select(func.count(models.Like.id))
+        .where(models.Like.post_id==post_id)
+    ).scalar_one()
+    return {
+        "message": message,
+        "like_count": count,
+    } 
