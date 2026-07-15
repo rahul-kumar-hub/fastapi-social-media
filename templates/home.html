@@ -124,7 +124,7 @@
 
                 <h2 class="fw-bold">
 
-                    1200+
+                    500+
 
                 </h2>
 
@@ -190,12 +190,18 @@
 
                 <div class="card-body">
 
+                    <!-- Temporary Category -->
+
+                    <span class="badge bg-primary mb-3">
+
+                        Technology
+
+                    </span>
                     <h4 class="card-title fw-bold">
 
                         {{ post.title }}
 
                     </h4>
-
                     <p class="text-muted">
 
                         {{ post.content[:120] }}...
@@ -206,7 +212,7 @@
 
                 <div class="card-footer bg-white border-0">
 
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between">
 
                         <small>
 
@@ -214,9 +220,44 @@
 
                         </small>
 
-                        <a href="#" class="btn btn-sm btn-primary">
+                        <small class="text-muted">
 
-                            Read More
+                            📅 {{ post.date_posted.strftime("%d %b %Y") }}
+
+                        </small>
+
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between text-muted">
+
+                        <span>
+
+                            ❤️ 0
+
+                        </span>
+
+                        <span>
+
+                            💬 0
+
+                        </span>
+
+                        <span>
+
+                            ⏱️ 5 min
+
+                        </span>
+
+                    </div>
+
+                    <div class="d-grid mt-3">
+
+                        <a href="/posts/blog/{{ post.id }}"
+                            class="btn btn-primary">
+
+                            Read More →
 
                         </a>
 

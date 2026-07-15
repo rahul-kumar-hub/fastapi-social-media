@@ -10,11 +10,14 @@ import schemas
 from auth import CurrentUser
 from database import get_db
 from schemas import PostCreate, PostResponse, PostUpdate, PaginatedPostsResponse
+from fastapi import Request
+from fastapi.templating import Jinja2Templates
 
 router = APIRouter(
     prefix="/posts",
     tags=["Posts"],
 )
+templates = Jinja2Templates(directory="templates")
 @router.post(
     "",
     response_model=schemas.PostResponse,
@@ -50,7 +53,6 @@ def get_posts(
     offset = (page - 1) * size
     # Count Query
     count_query = select(func.count(models.Post.id))
-
     if author_id is not None:
         count_query = count_query.where(
             models.Post.user_id == author_id
@@ -85,7 +87,6 @@ def get_posts(
     )
     # Execute Query
     result = db.execute(query)
-
     posts = result.scalars().all()
     # Response
     return PaginatedPostsResponse(
@@ -105,10 +106,36 @@ def get_post(post_id: int, db: Annotated[Session, Depends(get_db)]):
         .options(selectinload(models.Post.author))
         .where(models.Post.id == post_id)
     )
-    post = result.scalar().first()
+    post = result.scalar_one_or_none()
     if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
     return post
+
+@router.get("/blog/{post_id}")
+def blog_post(
+    request: Request,
+    post_id: int,
+    db: Annotated[Session, Depends(get_db)]
+):
+   post = db.scalar(
+    select(models.Post)
+    .options(selectinload(models.Post.author))
+    .where(models.Post.id == post_id)
+)
+   if post is None:
+    raise HTTPException(
+        status_code=404,
+        detail="Post not found"
+    )
+   return templates.TemplateResponse(
+    request,
+    "post_detail.html",
+    {
+        "title": post.title,
+        "post": post,
+    }
+)
+        
 @router.put("/{post_id}", response_model=PostResponse)
 def update_post_full(
     post_id: int, 
@@ -133,13 +160,13 @@ def update_post_full(
     return post
 
 @router.patch("/{post_id}", response_model=PostResponse)
-async def update_post_partial(
+def update_post_partial(
     post_id: int, 
     post_data: PostUpdate, 
     current_user:CurrentUser, 
     db: Annotated[Session, Depends(get_db)],
 ):
-    result =await db.execute(select(models.Post).where(models.Post.id == post_id))
+    result =db.execute(select(models.Post).where(models.Post.id == post_id))
     post = result.scalars().first()
     if not post:
        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
@@ -152,8 +179,8 @@ async def update_post_partial(
     update_data=post_data.model_dump(exclude_unset=True) #exclude_unset=True → only include fields that were provided in the request (not None)
     for key, value in update_data.items():
         setattr(post, key, value)
-    await db.commit()
-    await db.refresh(post,attribute_names=["author"]) 
+    db.commit()
+    db.refresh(post,attribute_names=["author"]) 
     return post
 
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -175,7 +202,7 @@ def delete_post(post_id: int, current_user:CurrentUser,db: Annotated[Session, De
     db.commit()
 
 @router.post(
-    "/posts/{post_id}/like",
+    "/{post_id}/like",
 )
 def toggle_like(post_id:int,
     current_user: CurrentUser,

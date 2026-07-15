@@ -81,5 +81,30 @@ footer{
     transform:translateY(-8px);
 
     box-shadow:0 20px 40px rgba(0,0,0,.15);
-
+};
+.badge{
+    font-size:.8rem;
+    border-radius:20px;
+}
+.card-footer hr{
+    margin:12px 0;
+}
+.card-footer span{
+    font-size:.9rem;
+}
+.post-card{
+    cursor:pointer;
+}
+.post-content{
+    font-size:1.1rem;
+    line-height:1.9;
+    color:#444;
+    white-space:pre-line;
+}
+.card-img-top{
+    border-top-left-radius:12px;
+    border-top-right-radius:12px;
+}
+.card{
+    border-radius:12px;
 }
