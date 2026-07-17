@@ -1,58 +1,156 @@
+let postPublished = false;
 const form = document.getElementById("createPostForm");
 const button = form.querySelector("button");
+const title = document.getElementById("title");
+const content = document.getElementById("content");
 const message = document.getElementById("message");
+const draftStatus =
+    document.getElementById("draftStatus");
+const titleCounter = document.getElementById("titleCount");
+const charCount = document.getElementById("charCount");
+const savedTitle = localStorage.getItem("draft_title");
+const savedContent = localStorage.getItem("draft_content");
 
+
+if (savedTitle) {
+    titleInput.value = savedTitle;
+}
+if (savedContent) {
+    contentInput.value = savedContent;
+}
+titleCounter.innerText = titleInput.value.length;
+
+charCount.innerText =
+    `${contentInput.value.length} characters`;
+
+content.style.height = "auto";
+content.style.height =
+    content.scrollHeight + "px";
+titleInput.addEventListener("input", () => {
+    localStorage.setItem(
+        "draft_title",
+        title.value
+    );
+    draftStatus.innerText = "Saving...";
+    setTimeout(() => {
+
+        draftStatus.innerText = "Draft Saved";
+
+    }, 500);
+});
+contentInput.addEventListener("input", () => {
+    localStorage.setItem(
+        "draft_content",
+        content.value
+    );
+    draftStatus.innerText = "Saving...";
+
+    setTimeout(() => {
+
+        draftStatus.innerText = "Draft Saved";
+
+    }, 500);
+});
+
+title.addEventListener("input", () => {
+    titleCounter.innerText = title.value.length;
+});
+content.addEventListener("input", () => {
+    content.style.height = "auto";
+    content.style.height = content.scrollHeight + "px";
+    charCount.innerText =
+        `${content.value.length} characters`;
+});
 form.addEventListener("submit", async (e) => {
 
     e.preventDefault();
 
     message.innerHTML = "";
+    if (title.value.trim() === "") {
+        message.innerHTML = `
+        <div class="alert alert-danger">
+            Please enter a title.
+        </div>
+    `;
+        title.focus();
+        return;
+    }
+    if (content.value.trim() === "") {
+        message.innerHTML = `
+        <div class="alert alert-danger">
+            Please write something.
+        </div>
+    `;
 
+        content.focus();
+
+        return;
+
+    }
     button.disabled = true;
-    button.innerText = "Publishing...";
+    button.innerHTML = `
+<span class="spinner-border spinner-border-sm"></span>
+ Publishing...
+`;
 
     try {
-
-        const response = await fetch("/posts", {
-
-            method: "POST",
-
-            credentials: "include",
-
-            headers: {
-                "Content-Type": "application/json"
-            },
-
-            body: JSON.stringify({
-
-                title: document.getElementById("title").value,
-                content: document.getElementById("content").value
-
-            })
-
-        });
-
-        if (!response.ok) {
-
+        const response = await fetch(
+            "/posts",
+            {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    title: title.value,
+                    content: content.value
+                })
+            }
+        );
+        if (response.ok) {
+            const post = await response.json();
+            localStorage.removeItem("draft_title");
+            localStorage.removeItem("draft_content");
+            window.location.href = `/posts/blog/${post.id}`;
+        } else {
             const error = await response.json();
-
-            throw new Error(error.detail);
-
+            message.innerHTML = `
+        <div class="alert alert-danger">
+            ${error.detail}
+        </div>
+        `;
+            button.disabled = false;
+            button.innerText = "Publish Story";
         }
-
-        const post = await response.json();
-
-        window.location.href = `/posts/blog/${post.id}`;
-
-    } catch (error) {
-
-        message.innerHTML =
-            `<div class="alert alert-danger">${error.message}</div>`;
-
-    } finally {
-
+    } catch {
+        message.innerHTML = `
+    <div class="alert alert-danger">
+        Unable to connect to the server.
+    </div>
+    `;
         button.disabled = false;
-        button.innerText = "Publish";
+        button.innerText = "Publish Story";
+    }
+
+});
+document.addEventListener("keydown", (e) => {
+    if (e.ctrlKey && e.key === "Enter") {
+        form.requestSubmit();
+    }
+});
+
+window.addEventListener("beforeunload", function (e) {
+
+    if (postPublished) return;
+
+    if (
+        titleInput.value.trim() ||
+        contentInput.value.trim()
+    ) {
+
+        e.preventDefault();
+        e.returnValue = "";
 
     }
 

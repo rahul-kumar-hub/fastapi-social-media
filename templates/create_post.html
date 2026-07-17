@@ -2,45 +2,88 @@
 
 {% block content %}
 
-<div class="container">
+<div class="write-container">
 
-    <form id="createPostForm">
+    <div class="write-header">
 
-        <div class="mb-4">
+        <a href="/" class="back-link">
 
-            <input
-                id="title"
-                class="form-control form-control-lg"
-                type="text"
-                placeholder="Title"
-                required>
+            ← Home
 
-        </div>
+        </a>
 
-        <div class="mb-4">
+        <span
+            id="draftStatus"
+            class="text-success">
 
-            <textarea
-                id="content"
-                class="form-control"
-                rows="15"
-                placeholder="Tell your story..."
-                required></textarea>
+            Draft Saved
 
-        </div>
+        </span>
 
-        <button class="btn btn-success">
-
-            Publish
-
-        </button>
-
-    </form>
-
-    <div
-        id="message"
-        class="mt-3">
     </div>
 
+    <form id="createPostForm">
+        <input
+
+            id="title"
+
+            class="post-title"
+
+            placeholder="Title"
+
+            maxlength="150"
+
+            required
+        >
+
+        <div class="text-end">
+
+            <small class="text-muted">
+
+                <span id="titleCount">0</span>/150
+
+            </small>
+
+        </div>
+        <textarea
+
+            id="content"
+
+            class="post-content"
+
+            placeholder="Tell your story..."
+
+            required
+
+        ></textarea>
+
+        <div class="text-end">
+
+            <small
+                id="charCount"
+                class="text-muted">
+
+                0 characters
+
+            </small>
+
+        </div>
+
+        <div id="message" class="mt-4"></div>
+
+        <div class="publish-bar">
+
+            <button
+                class="btn btn-success btn-lg">
+
+                Publish Story
+
+            </button>
+
+        </div>
+
+    </form>
+    
 </div>
 
 {% endblock %}

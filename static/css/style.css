@@ -166,3 +166,78 @@ footer{
     text-align:center;
     color:#94a3b8;
 }
+.post-title{
+    border:none;
+    box-shadow:none !important;
+    font-size:48px;
+    font-weight:700;
+    padding:10px 0;
+}
+.post-title::placeholder{
+    color:#999;
+}
+.post-title:focus{
+    border:none;
+    outline:none;
+}
+.post-content{
+    border:none;
+    box-shadow:none !important;
+    resize:none;
+    min-height:600px;
+    font-size:22px;
+    line-height:1.8;
+    padding:0;
+}
+.post-content::placeholder{
+    color:#999;
+}
+.post-content:focus{
+    border:none;
+    outline:none;
+}
+/*  Write Story Page*/
+
+.write-container{
+    max-width:900px;
+    margin:auto;
+    padding-top:40px;
+}
+.write-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:30px;
+}
+.back-link{
+    text-decoration:none;
+    font-weight:600;
+}
+.post-title{
+    width:100%;
+    border:none;
+    outline:none;
+    font-size:3rem;
+    font-weight:700;
+    margin-bottom:20px;
+}
+.post-title::placeholder{
+    color:#bbb;
+}
+.post-content{
+    width:100%;
+    min-height:400px;
+    resize:none;
+    border:none;
+    outline:none;
+    font-size:1.25rem;
+    line-height:1.9;
+}
+.post-content::placeholder{
+    color:#bbb;
+}
+.publish-bar{
+    margin-top:40px;
+    display:flex;
+    justify-content:flex-end;
+}
