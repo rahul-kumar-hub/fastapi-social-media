@@ -41,18 +41,20 @@
                 <ul class="navbar-nav me-auto">
 
                     <li class="nav-item">
-                        <a class="nav-link" href="/">Home</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="/posts/create">
-                            Write
+                        <a class="nav-link {% if request.url.path == '/' %}active{% endif %}" href="/">
+                            Home
                         </a>
                     </li>
 
+                    <a class="nav-link {% if request.url.path == '/posts/create' %}active{% endif %}"
+                        href="/posts/create">
+                        Write
+                    </a>
+
                     <li class="nav-item">
-                        <a class="nav-link" href="/">
-                            Explore
+                        <a class="nav-link {% if request.url.path.startswith('/posts') %}active{% endif %}"
+                            href="/posts">
+                            Blogs
                         </a>
                     </li>
 
@@ -66,6 +68,78 @@
 
                     </form>
 
+                    {% if current_user %}
+
+                    <!-- Notification -->
+
+                    <a href="#" class="btn btn-light me-2">
+                        <i class="fa-regular fa-bell"></i>
+                    </a>
+
+                    <!-- User Dropdown -->
+
+                    <div class="dropdown">
+
+                        <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+
+                            <img src="{{ current_user.image_path }}" class="rounded-circle" width="32" height="32">
+
+                            {{ current_user.username }}
+
+                        </button>
+
+                        <ul class="dropdown-menu dropdown-menu-end">
+
+                            <li>
+
+                                <a class="dropdown-item" href="/users/{{ current_user.id }}/profile">
+
+                                    My Profile
+
+                                </a>
+
+                            </li>
+
+                            <li>
+
+                                <a class="dropdown-item" href="/my-posts">
+
+                                    My Posts
+
+                                </a>
+
+                            </li>
+
+                            <li>
+
+                                <a class="dropdown-item" href="/settings">
+
+                                    Settings
+
+                                </a>
+
+                            </li>
+
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+
+                            <li>
+
+                                <a class="dropdown-item text-danger" href="/users/logout">
+
+                                    Logout
+
+                                </a>
+
+                            </li>
+
+                        </ul>
+
+                    </div>
+
+                    {% else %}
+
                     <a href="/login" class="btn btn-outline-primary me-2">
 
                         Login
@@ -75,8 +149,10 @@
                     <a href="/register" class="btn btn-primary">
 
                         Register
-
+                        
                     </a>
+
+                    {% endif %}
 
                 </div>
 
@@ -100,79 +176,79 @@
 
     <footer class="footer mt-5">
 
-    <div class="container">
+        <div class="container">
 
-        <div class="row">
+            <div class="row">
 
-            <div class="col-md-4">
+                <div class="col-md-4">
 
-                <h3 class="footer-logo">
-                    BlogSphere
-                </h3>
+                    <h3 class="footer-logo">
+                        BlogSphere
+                    </h3>
 
-                <p>
-                    Share your knowledge with the world.
-                    Learn from amazing developers.
-                    Grow together.
-                </p>
+                    <p>
+                        Share your knowledge with the world.
+                        Learn from amazing developers.
+                        Grow together.
+                    </p>
 
-            </div>
+                </div>
 
-            <div class="col-md-2">
+                <div class="col-md-2">
 
-                <h5>Quick Links</h5>
+                    <h5>Quick Links</h5>
 
-                <ul class="footer-links">
+                    <ul class="footer-links">
 
-                    <li><a href="/">Home</a></li>
-                    <li><a href="/posts">Blogs</a></li>
-                    <li><a href="/login">Login</a></li>
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/posts">Blogs</a></li>
+                        <li><a href="/login">Login</a></li>
 
-                </ul>
+                    </ul>
 
-            </div>
+                </div>
 
-            <div class="col-md-3">
+                <div class="col-md-3">
 
-                <h5>Resources</h5>
+                    <h5>Resources</h5>
 
-                <ul class="footer-links">
+                    <ul class="footer-links">
 
-                    <li><a href="#">About</a></li>
-                    <li><a href="#">Privacy</a></li>
-                    <li><a href="#">Terms</a></li>
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">Privacy</a></li>
+                        <li><a href="#">Terms</a></li>
 
-                </ul>
+                    </ul>
 
-            </div>
+                </div>
 
-            <div class="col-md-3">
+                <div class="col-md-3">
 
-                <h5>Follow</h5>
+                    <h5>Follow</h5>
 
-                <div class="social-links">
+                    <div class="social-links">
 
-                    <a href="#">GitHub</a>
-                    <a href="#">LinkedIn</a>
-                    <a href="#">Twitter</a>
+                        <a href="#">GitHub</a>
+                        <a href="#">LinkedIn</a>
+                        <a href="#">Twitter</a>
+
+                    </div>
 
                 </div>
 
             </div>
 
+            <hr>
+
+            <div class="footer-bottom">
+
+                © 2026 BlogSphere • Built with ❤️ using FastAPI & Bootstrap
+
+            </div>
+
         </div>
 
-        <hr>
-
-        <div class="footer-bottom">
-
-            © 2026 BlogSphere • Built with ❤️ using FastAPI & Bootstrap
-
-        </div>
-
-    </div>
-
-</footer>
+    </footer>
 
     <!-- Bootstrap JS -->
 
@@ -181,6 +257,9 @@
     <!-- Custom JS -->
 
     <script src="/static/js/main.js"></script>
+    {% block scripts %}
+
+    {% endblock %}
 
 </body>
 

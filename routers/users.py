@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status,UploadFile, File, Query
+from fastapi import APIRouter, Depends, HTTPException, status,UploadFile, File, Query, Response
 from datetime import timedelta
 from typing import Annotated
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import select
 import models, schemas
-from schemas import Token, UserCreate, UserResponse, UserProfileResponse
+from schemas import Token, UserCreate, UserResponse, UserProfileResponse,UserPublic
 from config import settings
 from database import get_db
 from auth import(
@@ -18,7 +18,7 @@ from utils.image import(
     process_profile_image,
     delete_profile_image,
 )
-from schemas import Token,UserCreate,UserPublic, UserResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 router = APIRouter(
     prefix="/users", #used to add the comman URL prefix to all routes in an APLRouter
     tags = ["Users"], # Used only for API documentation in swagger UI
@@ -38,7 +38,7 @@ def register_user(user_data:schemas.UserCreate, db:Annotated[Session, Depends(ge
     existing_user = result.scalars().first()
     if existing_user:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLIT,
+            status_code=status.HTTP_409_CONFLICT,
             detail="Username already exists",
         )
     result = db.execute(
@@ -64,8 +64,14 @@ def register_user(user_data:schemas.UserCreate, db:Annotated[Session, Depends(ge
 
 @router.post("/login")
 def login(
-    form_data:Annotated[OAuth2PasswordRequestForm, Depends()],
-    db:Annotated[Session,Depends(get_db)],
+    form_data: Annotated[
+        OAuth2PasswordRequestForm,
+        Depends()
+    ],
+    db: Annotated[
+        Session,
+        Depends(get_db)
+    ],
 ):
     result = db.execute(
         select(models.User).where(
@@ -84,7 +90,19 @@ def login(
         data={"sub": str(user.id)},
         expires_delta=access_token_expires,
     )
-    return Token(access_token=access_token, token_type="bearer")
+    # return Token(access_token=access_token, token_type="bearer")
+    response = JSONResponse(
+    content={"message": "Login successful"}
+)
+
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        max_age=settings.access_token_expire_minutes * 60,
+        samesite="lax",
+    )
+    return response
 
 @router.get("/me", response_model=schemas.UserResponse)
 def get_current_user(
@@ -183,3 +201,15 @@ def search_users(
     
     users = result.scalars().all()
     return users
+
+@router.get("/logout")
+def logout():
+
+    response = RedirectResponse(
+        url="/",
+        status_code=303
+    )
+
+    response.delete_cookie("access_token")
+
+    return response

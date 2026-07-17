@@ -1,6 +1,6 @@
 from  datetime import datetime,timedelta, timezone
 from typing import Annotated
-from fastapi import Depends,HTTPException,status
+from fastapi import Depends,HTTPException,status,Request
 from typing import Optional
 from jose import jwt
 from fastapi.security import OAuth2PasswordBearer
@@ -12,7 +12,7 @@ from config import settings
 from database import get_db
 password_hash = PasswordHash.recommended()
 
-oauth2_scheme=OAuth2PasswordBearer(tokenUrl="users/login")
+oauth2_scheme=OAuth2PasswordBearer(tokenUrl="users/login",auto_error=False)
 def hash_password(password:str)->str:
     return password_hash.hash(password)
 
@@ -53,11 +53,31 @@ def verify_access_token(token: str) -> str | None:
         return None
     else:
         return payload.get("sub")
+
+def get_token_from_request(
+    request: Request,
+    bearer_token: str | None,
+) -> str | None:
+    if bearer_token:
+        return bearer_token
+    # Otherwise check Cookie
+    return request.cookies.get("access_token")
     
 def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)],
+    request: Request,
+    token: Annotated[str|None, Depends(oauth2_scheme)],
     db: Annotated[Session, Depends(get_db)],
 ) -> models.User:
+    token = get_token_from_request(
+        request,
+        token,
+    )
+    if token is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     user_id = verify_access_token(token)
     if user_id is None:
         raise HTTPException(
@@ -87,3 +107,30 @@ def get_current_user(
     return user
 
 CurrentUser = Annotated[models.User, Depends(get_current_user)]
+
+def get_current_user_from_cookie(
+    request: Request,
+    db: Annotated[Session, Depends(get_db)],
+) -> models.User | None:
+
+    token = request.cookies.get("access_token")
+
+    if not token:
+        return None
+
+    user_id = verify_access_token(token)
+
+    if user_id is None:
+        return None
+
+    try:
+        user_id = int(user_id)
+    except ValueError:
+        return None
+
+    result = db.execute(
+        select(models.User)
+        .where(models.User.id == user_id)
+    )
+
+    return result.scalars().first()

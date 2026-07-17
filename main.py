@@ -5,7 +5,9 @@ from sqlalchemy import select,func
 from sqlalchemy.orm import Session
 from database import Base,engine,get_db
 import models
-from routers import users, posts, comments
+from routers import users, posts, comments, pages
+from auth import get_current_user_from_cookie
+
 
 
 Base.metadata.create_all(engine)
@@ -17,10 +19,12 @@ templates = Jinja2Templates(directory="templates")
 app.include_router(users.router)
 app.include_router(posts.router)
 app.include_router(comments.router)
+app.include_router(pages.router)
 @app.get("/")
 def home(
     request: Request,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: models.User | None = Depends(get_current_user_from_cookie),
 ):
     result = db.execute(
         select(models.Post)
@@ -30,6 +34,7 @@ def home(
     total_posts = db.scalar(select(func.count(models.Post.id)))
     total_users = db.scalar(select(func.count(models.User.id)))
     total_comments = db.scalar(select(func.count(models.Comment.id)))
+    current_user = get_current_user_from_cookie(request, db)
     return templates.TemplateResponse(
         request,
         "home.html",
@@ -38,6 +43,7 @@ def home(
             "posts": posts,
             "total_posts": total_posts,
             "total_users": total_users,
-            "total_comments": total_comments
+            "total_comments": total_comments,
+            "current_user": current_user,
         }
 )

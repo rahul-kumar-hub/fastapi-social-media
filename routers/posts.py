@@ -12,12 +12,32 @@ from database import get_db
 from schemas import PostCreate, PostResponse, PostUpdate, PaginatedPostsResponse
 from fastapi import Request
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import RedirectResponse
+from auth import get_current_user_from_cookie
 
 router = APIRouter(
     prefix="/posts",
     tags=["Posts"],
 )
 templates = Jinja2Templates(directory="templates")
+
+@router.get("/create")
+def create_post_page(
+    request: Request,
+    current_user = Depends(get_current_user_from_cookie),
+):
+    if current_user is None:
+        return RedirectResponse("/login", status_code=302)
+
+    return templates.TemplateResponse(
+        request,
+        "create_post.html",
+        {
+            "request": request,
+            "title": "Write Story",
+            "current_user": current_user,
+        },
+    )
 @router.post(
     "",
     response_model=schemas.PostResponse,
