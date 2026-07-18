@@ -18,7 +18,7 @@ form.addEventListener("submit", async function (e) {
 
     if (response.ok) {
 
-        window.location.href = "/";
+        window.location.href = "/feed";
 
     } else {
 

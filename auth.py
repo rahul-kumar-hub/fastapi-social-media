@@ -106,16 +106,15 @@ def get_current_user(
         )
     return user
 
-CurrentUser = Annotated[models.User, Depends(get_current_user)]
-
-def get_current_user_from_cookie(
+def get_optional_current_user(
     request: Request,
+    token: Annotated[str | None, Depends(oauth2_scheme)],
     db: Annotated[Session, Depends(get_db)],
 ) -> models.User | None:
 
-    token = request.cookies.get("access_token")
+    token = get_token_from_request(request, token)
 
-    if not token:
+    if token is None:
         return None
 
     user_id = verify_access_token(token)
@@ -125,7 +124,7 @@ def get_current_user_from_cookie(
 
     try:
         user_id = int(user_id)
-    except ValueError:
+    except (TypeError, ValueError):
         return None
 
     result = db.execute(
@@ -134,3 +133,6 @@ def get_current_user_from_cookie(
     )
 
     return result.scalars().first()
+
+CurrentUser = Annotated[models.User, Depends(get_current_user)]
+

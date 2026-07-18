@@ -1,7 +1,7 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import select,func
+from sqlalchemy import select,func, or_
 import math 
 from sqlalchemy.orm import selectinload
 
@@ -13,7 +13,7 @@ from schemas import PostCreate, PostResponse, PostUpdate, PaginatedPostsResponse
 from fastapi import Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
-from auth import get_current_user_from_cookie
+from auth import get_optional_current_user
 
 router = APIRouter(
     prefix="/posts",
@@ -24,7 +24,10 @@ templates = Jinja2Templates(directory="templates")
 @router.get("/create")
 def create_post_page(
     request: Request,
-    current_user = Depends(get_current_user_from_cookie),
+    current_user: Annotated[
+        models.User | None,
+        Depends(get_optional_current_user)
+    ],
 ):
     if current_user is None:
         return RedirectResponse("/login", status_code=302)
@@ -119,23 +122,77 @@ def get_posts(
         has_previous=has_previous,
     )
 
-@router.get("/{post_id}", response_model=PostResponse)
-def get_post(post_id: int, db: Annotated[Session, Depends(get_db)]):
-    result = db.execute(
+@router.get("/page")
+def blogs_page(
+    request: Request,
+    db: Annotated[
+        Session,
+        Depends(get_db)
+    ],
+    current_user: Annotated[
+        models.User | None,
+        Depends(get_optional_current_user)
+    ],
+    search: str | None = Query(default=None),
+    page: Annotated[int, Query(ge=1)] = 1,
+    size: Annotated[int, Query(ge=1, le=20)] = 6,
+):
+    query = (
         select(models.Post)
         .options(selectinload(models.Post.author))
-        .where(models.Post.id == post_id)
     )
-    post = result.scalar_one_or_none()
-    if post is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
-    return post
+    # Search
+    if search:
+        query = query.where(
+            or_(
+                models.Post.title.ilike(f"%{search}%"),
+                models.Post.content.ilike(f"%{search}%"),
+            )
+        )
+# Count total results
+    count_query = select(func.count(models.Post.id))
+    if search:
+        count_query = count_query.where(
+            or_(
+                models.Post.title.ilike(f"%{search}%"),
+                models.Post.content.ilike(f"%{search}%"),
+            )
+        )
+    total_posts = db.scalar(count_query)
+# Pagination
+    total_pages = max(1, math.ceil(total_posts / size))
+    query = (
+        query
+        .order_by(models.Post.date_posted.desc())
+        .offset((page - 1) * size)
+        .limit(size)
+    )
+    posts = db.execute(query).scalars().all()
+    return templates.TemplateResponse(
+    request,
+    "blogs.html",
+    {
+        "title": "Blogs",
+        "posts": posts,
+        "current_user": current_user,
+        "search": search,
+        "page": page,
+        "size": size,
+        "total_pages": total_pages,
+        "has_next": page < total_pages,
+        "has_previous": page > 1,
+    },
+)
 
 @router.get("/blog/{post_id}")
 def blog_post(
     request: Request,
     post_id: int,
-    db: Annotated[Session, Depends(get_db)]
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[
+        models.User | None,
+        Depends(get_optional_current_user)
+    ],
 ):
    post = db.scalar(
     select(models.Post)
@@ -153,8 +210,22 @@ def blog_post(
     {
         "title": post.title,
         "post": post,
+        "current_user":current_user,
     }
 )
+@router.get("/{post_id}", response_model=PostResponse)
+def get_post(post_id: int, db: Annotated[Session, Depends(get_db)]):
+    result = db.execute(
+        select(models.Post)
+        .options(selectinload(models.Post.author))
+        .where(models.Post.id == post_id)
+    )
+    post = result.scalar_one_or_none()
+    if post is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+    return post
+
+
         
 @router.put("/{post_id}", response_model=PostResponse)
 def update_post_full(
@@ -258,4 +329,4 @@ def toggle_like(post_id:int,
     return {
         "message": message,
         "like_count": count,
-    } 
+    }

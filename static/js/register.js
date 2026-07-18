@@ -1,3 +1,4 @@
+console.log("register.js loaded");
 const form = document.getElementById("registerForm");
 const button = form.querySelector("button");
 const message = document.getElementById("message");

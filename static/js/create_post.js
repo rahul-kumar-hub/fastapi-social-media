@@ -10,23 +10,34 @@ const titleCounter = document.getElementById("titleCount");
 const charCount = document.getElementById("charCount");
 const savedTitle = localStorage.getItem("draft_title");
 const savedContent = localStorage.getItem("draft_content");
+const coverImage = document.getElementById("coverImage");
+const coverPreview = document.getElementById("coverPreview");
 
+coverImage.addEventListener("change", ()=>{
+    const file = coverImage.files[0];
+    if(!file){
+        return;
+    }
+    coverPreview.src =
+        URL.createObjectURL(file);
+    coverPreview.classList.remove("d-none");
+});
 
 if (savedTitle) {
-    titleInput.value = savedTitle;
+    title.value = savedTitle;
 }
 if (savedContent) {
-    contentInput.value = savedContent;
+    content.value = savedContent;
 }
-titleCounter.innerText = titleInput.value.length;
+titleCounter.innerText = title.value.length;
 
 charCount.innerText =
-    `${contentInput.value.length} characters`;
+    `${content.value.length} characters`;
 
 content.style.height = "auto";
 content.style.height =
     content.scrollHeight + "px";
-titleInput.addEventListener("input", () => {
+title.addEventListener("input", () => {
     localStorage.setItem(
         "draft_title",
         title.value
@@ -38,7 +49,7 @@ titleInput.addEventListener("input", () => {
 
     }, 500);
 });
-contentInput.addEventListener("input", () => {
+content.addEventListener("input", () => {
     localStorage.setItem(
         "draft_content",
         content.value
@@ -109,6 +120,7 @@ form.addEventListener("submit", async (e) => {
             }
         );
         if (response.ok) {
+            postPublished = true;
             const post = await response.json();
             localStorage.removeItem("draft_title");
             localStorage.removeItem("draft_content");
@@ -123,7 +135,8 @@ form.addEventListener("submit", async (e) => {
             button.disabled = false;
             button.innerText = "Publish Story";
         }
-    } catch {
+    } catch(error) {
+        console.error(error);
         message.innerHTML = `
     <div class="alert alert-danger">
         Unable to connect to the server.
@@ -145,8 +158,8 @@ window.addEventListener("beforeunload", function (e) {
     if (postPublished) return;
 
     if (
-        titleInput.value.trim() ||
-        contentInput.value.trim()
+        title.value.trim() ||
+        content.value.trim()
     ) {
 
         e.preventDefault();

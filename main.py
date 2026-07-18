@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from database import Base,engine,get_db
 import models
 from routers import users, posts, comments, pages
-from auth import get_current_user_from_cookie
+from auth import get_optional_current_user
 
 
 
@@ -24,7 +24,7 @@ app.include_router(pages.router)
 def home(
     request: Request,
     db: Session = Depends(get_db),
-    current_user: models.User | None = Depends(get_current_user_from_cookie),
+    current_user: models.User | None = Depends(get_optional_current_user),
 ):
     result = db.execute(
         select(models.Post)
@@ -34,7 +34,7 @@ def home(
     total_posts = db.scalar(select(func.count(models.Post.id)))
     total_users = db.scalar(select(func.count(models.User.id)))
     total_comments = db.scalar(select(func.count(models.Comment.id)))
-    current_user = get_current_user_from_cookie(request, db)
+
     return templates.TemplateResponse(
         request,
         "home.html",

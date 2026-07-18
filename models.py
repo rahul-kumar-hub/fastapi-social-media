@@ -69,6 +69,11 @@ class Post(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
     )
+    cover_image = mapped_column(
+        String,
+        nullable=True,
+        default="default_cover.jpg"
+    )
     user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id"),
         nullable=False,

@@ -1,5 +1,8 @@
+from typing import Annotated
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
+from auth import CurrentUser
+import models
 
 router = APIRouter()
 
@@ -27,4 +30,18 @@ def register_page(request: Request):
         {
             "title": "Register",
         },
+    )
+@router.get("/feed")
+def feed_page(
+    request: Request,
+    current_user: CurrentUser,
+):
+
+    return templates.TemplateResponse(
+        request,
+        "feed.html",
+        {
+            "title": "Feed",
+            "current_user": current_user,
+        }
     )

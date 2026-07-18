@@ -6,15 +6,13 @@
 
     <div class="write-header">
 
-        <a href="/" class="back-link">
+        <a href="/feed" class="back-link">
 
             ← Home
 
         </a>
 
-        <span
-            id="draftStatus"
-            class="text-success">
+        <span id="draftStatus" class="text-success">
 
             Draft Saved
 
@@ -23,18 +21,25 @@
     </div>
 
     <form id="createPostForm">
-        <input
+        <div class="mb-4">
 
-            id="title"
+            <label class="form-label fw-bold">
 
-            class="post-title"
+                Cover Image
 
-            placeholder="Title"
+            </label>
 
-            maxlength="150"
+            <input type="file" id="coverImage" class="form-control" accept="image/*">
 
-            required
-        >
+        </div>
+
+        <div class="mb-3">
+
+            <img id="coverPreview" class="img-fluid rounded shadow-sm d-none"
+                style="max-height:300px;object-fit:cover;">
+
+        </div>
+        <input id="title" class="post-title" placeholder="Title" maxlength="150" required>
 
         <div class="text-end">
 
@@ -45,23 +50,11 @@
             </small>
 
         </div>
-        <textarea
-
-            id="content"
-
-            class="post-content"
-
-            placeholder="Tell your story..."
-
-            required
-
-        ></textarea>
+        <textarea id="content" class="post-content" placeholder="Tell your story..." required></textarea>
 
         <div class="text-end">
 
-            <small
-                id="charCount"
-                class="text-muted">
+            <small id="charCount" class="text-muted">
 
                 0 characters
 
@@ -73,8 +66,7 @@
 
         <div class="publish-bar">
 
-            <button
-                class="btn btn-success btn-lg">
+            <button class="btn btn-success btn-lg">
 
                 Publish Story
 
@@ -83,7 +75,7 @@
         </div>
 
     </form>
-    
+
 </div>
 
 {% endblock %}

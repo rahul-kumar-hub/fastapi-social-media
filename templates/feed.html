@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <div class="row">
+
+        <!-- Left Sidebar -->
+
+        <div class="col-lg-2 d-none d-lg-block">
+
+            <div class="feed-sidebar">
+
+                <h5 class="mb-4">Dashboard</h5>
+
+                <a href="/feed" class="sidebar-link">
+                    🏠 Feed
+                </a>
+
+                <a href="/posts/create" class="sidebar-link">
+                    ✍ Write Story
+                </a>
+
+                <a href="/profile" class="sidebar-link">
+                    👤 Profile
+                </a>
+
+                <a href="/my-posts" class="sidebar-link">
+                    📝 My Posts
+                </a>
+
+                <a href="/saved" class="sidebar-link">
+                    🔖 Saved
+                </a>
+
+                <a href="/logout" class="sidebar-link text-danger">
+                    🚪 Logout
+                </a>
+
+            </div>
+
+        </div>
+
+        <!-- Center Feed -->
+
+        <div class="col-lg-7">
+
+            <h3 class="mb-4">
+
+                Latest Stories
+
+            </h3>
+
+            <div id="postsContainer">
+
+            </div>
+
+        </div>
+
+        <!-- Right Sidebar -->
+
+        <div class="col-lg-3">
+
+            <div class="right-panel">
+
+                <h5>
+
+                    Trending Topics
+
+                </h5>
+
+                <div class="tag">Python</div>
+                <div class="tag">FastAPI</div>
+                <div class="tag">Web Development</div>
+                <div class="tag">AI</div>
+                <div class="tag">DSA</div>
+
+                <hr>
+
+                <h5>
+
+                    BlogSphere
+
+                </h5>
+
+                <p>
+
+                    Share your knowledge with the world.
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script src="/static/js/feed.js"></script>
+
+{% endblock %}

@@ -53,7 +53,7 @@
 
                     <li class="nav-item">
                         <a class="nav-link {% if request.url.path.startswith('/posts') %}active{% endif %}"
-                            href="/posts">
+                            href="/posts/page">
                             Blogs
                         </a>
                     </li>
@@ -62,9 +62,10 @@
 
                 <div class="d-flex align-items-center">
 
-                    <form class="d-flex me-3">
+                    <form class="d-flex me-3" action="/posts/page" method="get">
 
-                        <input class="form-control" type="search" placeholder="Search posts">
+                        <input class="form-control" type="search" name="search" placeholder="Search posts"
+                            value="{{ request.query_params.get('search','') }}">
 
                     </form>
 
@@ -149,7 +150,7 @@
                     <a href="/register" class="btn btn-primary">
 
                         Register
-                        
+
                     </a>
 
                     {% endif %}
