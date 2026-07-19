@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <h2 class="mb-4">
+        Edit Story
+    </h2>
+
+    <form id="editPostForm">
+
+        <input id="title" class="form-control mb-3" value="{{ post.title }}">
+
+        <textarea id="content" class="form-control" rows="12" placeholder="Content">{{ post.content }}</textarea>
+
+        <div id="message" class="mt-3"></div>
+
+        <button class="btn btn-success mt-3">
+
+            Update Story
+
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script src="/static/js/edit_post.js"></script>
+
+{% endblock %}

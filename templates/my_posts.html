@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2 class="mb-4">
+
+    My Posts
+
+</h2>
+
+{% if posts %}
+
+{% for post in posts %}
+
+<div class="card shadow-sm mb-4" id="post-{{ post.id }}">
+
+    <div class="card-body">
+
+        <h3>
+
+            {{ post.title }}
+
+        </h3>
+
+        <p class="text-muted">
+
+            {{ post.date_posted.strftime("%d %b %Y") }}
+
+        </p>
+
+        <p>
+
+            {{ post.content[:200] }}...
+
+        </p>
+
+        <a href="/posts/blog/{{ post.id }}" class="btn btn-primary btn-sm">
+            Read
+        </a>
+
+        <a href="/posts/edit/{{ post.id }}" class="btn btn-warning btn-sm">
+
+            Edit
+
+        </a>
+
+        <button class="btn btn-danger delete-post" data-id="{{ post.id }}">
+            Delete
+        </button>
+
+    </div>
+
+</div>
+
+{% endfor %}
+
+{% else %}
+
+<div class="alert alert-info">
+
+    You haven't published any posts yet.
+
+</div>
+
+{% endif %}
+
+{% endblock %}
+{% block scripts %}
+
+<script src="/static/js/my_posts.js"></script>
+
+{% endblock %}

@@ -3,7 +3,7 @@ from datetime import timedelta
 from typing import Annotated
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session, selectinload
-from sqlalchemy import select
+from sqlalchemy import select, func
 import models, schemas
 from schemas import Token, UserCreate, UserResponse, UserProfileResponse,UserPublic
 from config import settings
@@ -18,7 +18,10 @@ from utils.image import(
     process_profile_image,
     delete_profile_image,
 )
+from fastapi import Request
+from fastapi.templating import Jinja2Templates
 from fastapi.responses import JSONResponse, RedirectResponse
+templates = Jinja2Templates(directory="templates")
 router = APIRouter(
     prefix="/users", #used to add the comman URL prefix to all routes in an APLRouter
     tags = ["Users"], # Used only for API documentation in swagger UI
@@ -213,3 +216,33 @@ def logout():
     response.delete_cookie("access_token")
 
     return response
+@router.get("/profile")
+def profile_page(
+    request: Request,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: CurrentUser,
+):
+    # Count user's posts
+    total_posts = db.execute(
+        select(func.count(models.Post.id))
+        .where(models.Post.user_id == current_user.id)
+    ).scalar_one()
+    # Get latest 5 posts
+    recent_posts = db.execute(
+        select(models.Post)
+        .options(selectinload(models.Post.author))
+        .where(models.Post.user_id == current_user.id)
+        .order_by(models.Post.date_posted.desc())
+        .limit(5)
+    ).scalars().all()
+    return templates.TemplateResponse(
+        request,
+        "profile.html",
+        {
+            "request": request,
+            "title": "My Profile",
+            "current_user": current_user,
+            "total_posts": total_posts,
+            "recent_posts": recent_posts,
+        },
+    )

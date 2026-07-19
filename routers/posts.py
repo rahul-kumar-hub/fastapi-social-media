@@ -183,7 +183,76 @@ def blogs_page(
         "has_previous": page > 1,
     },
 )
+@router.get("/my-posts")
+def my_posts_page(
+    request: Request,
+    db: Annotated[
+        Session,
+        Depends(get_db)
+    ],
+    current_user: CurrentUser,
+):
+    posts = db.execute(
+        select(models.Post)
+        .options(
+            selectinload(models.Post.author)
+        )
+        .where(
+            models.Post.user_id == current_user.id
+        )
+        .order_by(
+            models.Post.date_posted.desc()
+        )
+    ).scalars().all()
 
+    return templates.TemplateResponse(
+        request,
+        "my_posts.html",
+        {
+            "request": request,
+            "title": "My Posts",
+            "posts": posts,
+            "current_user": current_user,
+        },
+    )
+
+@router.get("/edit/{post_id}")
+def edit_post_page(
+    post_id: int,
+    request: Request,
+    db: Annotated[
+        Session,
+        Depends(get_db)
+    ],
+    current_user: CurrentUser,
+):
+    post = db.scalar(
+        select(models.Post)
+        .where(models.Post.id == post_id)
+    )
+
+    if post is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Post not found"
+        )
+
+    if post.user_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized"
+        )
+
+    return templates.TemplateResponse(
+        request,
+        "edit_post.html",
+        {
+            "request": request,
+            "title": "Edit Post",
+            "post": post,
+            "current_user": current_user,
+        },
+    )
 @router.get("/blog/{post_id}")
 def blog_post(
     request: Request,
