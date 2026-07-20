@@ -2,7 +2,7 @@ from  datetime import datetime,timedelta, timezone
 from typing import Annotated
 from fastapi import Depends,HTTPException,status,Request
 from typing import Optional
-from jose import jwt
+from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer
 from pwdlib import PasswordHash
 from sqlalchemy import select
@@ -49,7 +49,7 @@ def verify_access_token(token: str) -> str | None:
             algorithms=[settings.algorithm],
             options={"require": ["exp", "sub"]},
         )
-    except jwt.InvalidTokenError:
+    except JWTError:
         return None
     else:
         return payload.get("sub")

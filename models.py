@@ -42,6 +42,9 @@ class User(Base):
     likes: Mapped[list[Like]] = relationship(
         back_populates="user"
     )
+    saved_posts: Mapped[list["SavedPost"]] = relationship(
+        cascade="all, delete-orphan"
+    )
 
     @property
     def image_path(self) -> str:
@@ -88,7 +91,9 @@ class Post(Base):
     likes: Mapped[list[Like]] = relationship(
         back_populates="post",
     )
-
+    saved_by: Mapped[list["SavedPost"]] = relationship(
+        cascade="all, delete-orphan"
+    )
 class Comment(Base):
     __tablename__ = "comments"
 
@@ -154,3 +159,26 @@ class Like(Base):
     post: Mapped[Post] = relationship(
         back_populates="likes",
 )
+class SavedPost(Base):
+    __tablename__ = "saved_posts"
+
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id"),
+        primary_key=True,
+    )
+
+    post_id: Mapped[int] = mapped_column(
+        ForeignKey("posts.id"),
+        primary_key=True,
+    )
+
+    saved_at: Mapped[datetime] = mapped_column(
+        default=datetime.utcnow
+    )
+
+    user: Mapped["User"] = relationship(
+        back_populates="saved_posts"
+    )
+    post: Mapped["Post"] = relationship(
+        back_populates="saved_by"
+    )

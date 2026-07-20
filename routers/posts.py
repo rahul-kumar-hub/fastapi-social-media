@@ -215,6 +215,71 @@ def my_posts_page(
             "current_user": current_user,
         },
     )
+@router.post("/{post_id}/save")
+def toggle_save(
+    post_id: int,
+    current_user: CurrentUser,
+    db: Annotated[
+        Session,
+        Depends(get_db)
+    ],
+):
+
+    post = db.get(models.Post, post_id)
+    if post is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Post not found",
+        )
+    existing = db.get(
+        models.SavedPost,
+        (current_user.id, post_id),
+    )
+    if existing:
+        db.delete(existing)
+        db.commit()
+        return {
+            "message": "Removed from saved"
+        }
+    saved = models.SavedPost(
+        user_id=current_user.id,
+        post_id=post_id,
+    )
+    db.add(saved)
+    db.commit()
+    return {
+        "message": "Post saved"
+    }
+
+@router.get("/saved")
+def saved_posts_page(
+    request: Request,
+    db: Annotated[
+        Session,
+        Depends(get_db)
+    ],
+    current_user: CurrentUser,
+):
+    saved = db.execute(
+        select(models.SavedPost)
+        .options(
+            selectinload(models.SavedPost.post)
+            .selectinload(models.Post.author)
+        )
+        .where(
+            models.SavedPost.user_id == current_user.id
+        )
+    ).scalars().all()
+    return templates.TemplateResponse(
+        request,
+        "saved_posts.html",
+        {
+            "request": request,
+            "title": "Saved Posts",
+            "saved_posts": saved,
+            "current_user": current_user,
+        },
+    )
 
 @router.get("/edit/{post_id}")
 def edit_post_page(
