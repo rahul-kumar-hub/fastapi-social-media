@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="card shadow p-4">
+
+        <h2 class="mb-4">
+            Account Settings
+        </h2>
+        <div id="message" class="mb-3"></div>
+        <!-- Profile Information -->
+
+        <h4>Profile Information</h4>
+
+        <form id="profileForm">
+
+            <div class="mb-3">
+
+                <label class="form-label">
+                    Username
+                </label>
+
+                <input type="text" class="form-control" id="username" value="{{ current_user.username }}">
+
+            </div>
+
+            <div class="mb-3">
+
+                <label class="form-label">
+                    Email
+                </label>
+
+                <input type="email" class="form-control" id="email" value="{{ current_user.email }}">
+
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                Save Changes
+            </button>
+
+        </form>
+
+        <hr class="my-5">
+
+        <!-- Profile Picture -->
+
+        <h4>Profile Picture</h4>
+
+        <img id="profileImage" src="{{ current_user.image_path }}" width="120" class="rounded-circle mb-3">
+
+        <form id="pictureForm">
+
+            <input type="file" class="form-control mb-3" id="picture" accept="image/*">
+
+            <button class="btn btn-success" type="submit">
+                Upload Picture
+            </button>
+
+            <button type="button" class="btn btn-danger" id="deletePicture">
+                Remove Picture
+            </button>
+
+        </form>
+
+        <hr class="my-5">
+
+        <!-- Password -->
+
+        <h4>Change Password</h4>
+
+        <form id="passwordForm">
+
+            <div class="mb-3">
+
+                <label class="form-label">
+                    Current Password
+                </label>
+
+                <input type="password" class="form-control" id="currentPassword">
+
+            </div>
+
+            <div class="mb-3">
+
+                <label class="form-label">
+                    New Password
+                </label>
+
+                <input type="password" class="form-control" id="newPassword">
+
+            </div>
+
+            <div class="mb-3">
+
+                <label class="form-label">
+                    Confirm Password
+                </label>
+
+                <input type="password" class="form-control" id="confirmPassword">
+
+            </div>
+
+            <button class="btn btn-warning" type="submit">
+                Change Password
+            </button>
+
+        </form>
+
+        <hr class="my-5">
+
+        <!-- Danger Zone -->
+
+        <h4 class="text-danger">
+            Danger Zone
+        </h4>
+
+        <p class="text-muted">
+            Permanently delete your account.
+        </p>
+        <div class="mb-3">
+
+            <label class="form-label">
+                Confirm Password
+            </label>
+
+            <input type="password" id="deletePassword" class="form-control">
+
+        </div>
+        <button class="btn btn-outline-danger" id="deleteAccount">
+            Delete My Account
+        </button>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script src="/static/js/settings.js"></script>
+
+{% endblock %}

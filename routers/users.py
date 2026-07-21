@@ -3,7 +3,7 @@ from datetime import timedelta
 from typing import Annotated
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session, selectinload
-from sqlalchemy import select, func
+from sqlalchemy import select, func, delete
 import models, schemas
 from schemas import Token, UserCreate, UserResponse, UserProfileResponse,UserPublic
 from config import settings
@@ -117,18 +117,14 @@ def get_current_user(
 ):
     return current_user
 
-@router.patch("/{user_id}/picture", response_model=UserResponse)
+@router.patch("/me/picture", response_model=UserResponse)
 def upload_profile_picture(
-    user_id: int,
+
     current_user: CurrentUser,
     db: Annotated[Session, Depends(get_db)],
     file: UploadFile = File(...),
 ):
-    if current_user.id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to update this user's picture",
-        )
+    
     content =file.file.read()
     if len(content) > settings.max_upload_size_bytes:
         raise HTTPException(
@@ -146,17 +142,13 @@ def upload_profile_picture(
 
     return current_user
 ## Delete Profile Picture Endpoint
-@router.delete("/{user_id}/picture", response_model=UserResponse)
+@router.delete("/me/picture", response_model=UserResponse)
 def delete_user_picture(
-    user_id: int,
+
     current_user: CurrentUser,
     db: Annotated[Session, Depends(get_db)],
 ):
-    if current_user.id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to delete this user's picture",
-        )
+    
     old_filename = current_user.image_file
     if old_filename is None:
         raise HTTPException(
@@ -220,6 +212,57 @@ def logout():
     response.delete_cookie("access_token")
 
     return response
+
+@router.delete("/me")
+def delete_account(
+    data: schemas.DeleteAccountRequest,
+    current_user: CurrentUser,
+    db: Annotated[
+        Session,
+        Depends(get_db)
+    ],
+):
+    if not verify_password(
+        data.password,
+        current_user.password_hash,
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect password",
+        )
+    db.execute(
+        delete(models.SavedPost).where(
+            models.SavedPost.user_id == current_user.id
+        )
+    )
+    db.execute(
+        delete(models.Like).where(
+            models.Like.user_id == current_user.id
+        )
+    )
+    db.execute(
+        delete(models.Comment).where(
+            models.Comment.user_id == current_user.id
+        )
+    )
+    db.execute(
+        delete(models.Post).where(
+            models.Post.user_id == current_user.id
+        )
+    )
+    old_filename = current_user.image_file
+    db.delete(current_user)
+    db.commit()
+    if old_filename:
+        delete_profile_image(old_filename)
+
+    response = RedirectResponse(
+        url="/",
+        status_code=303,
+    )
+    response.delete_cookie("access_token")
+    return response
+    
 @router.get("/profile")
 def profile_page(
     request: Request,
@@ -250,3 +293,77 @@ def profile_page(
             "recent_posts": recent_posts,
         },
     )
+@router.get("/settings")
+def settings_page(
+    request: Request,
+    current_user: CurrentUser,
+):
+    return templates.TemplateResponse(
+        request,
+        "settings.html",
+        {
+            "request": request,
+            "title": "Settings",
+            "current_user": current_user,
+        },
+    )
+
+@router.patch("/me", response_model=UserResponse)
+def update_current_user(
+    user_data: schemas.UserUpdate,
+    current_user: CurrentUser,
+    db: Annotated[Session, Depends(get_db)],
+):
+    # Username already taken?
+    result = db.execute(
+        select(models.User).where(
+            models.User.username == user_data.username,
+            models.User.id != current_user.id
+        )
+    )
+    existing = result.scalars().first()
+    if existing:
+        raise HTTPException(
+            status_code=409,
+            detail="Username already exists"
+        )
+    # Email already taken?
+    result = db.execute(
+        select(models.User).where(
+            models.User.email == user_data.email,
+            models.User.id != current_user.id
+        )
+    )
+    existing = result.scalars().first()
+    if existing:
+        raise HTTPException(
+            status_code=409,
+            detail="Email already exists"
+        )
+    current_user.username = user_data.username
+    current_user.email = user_data.email
+    db.commit()
+    db.refresh(current_user)
+    return current_user
+
+@router.patch("/change-password")
+def change_password(
+    password_data: schemas.PasswordChange,
+    current_user: CurrentUser,
+    db: Annotated[Session, Depends(get_db)],
+):
+    if not verify_password(
+        password_data.current_password,
+        current_user.password_hash,
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Current password is incorrect",
+        )
+    current_user.password_hash = hash_password(
+        password_data.new_password
+    )
+    db.commit()
+    return {
+        "message": "Password changed successfully"
+    }

@@ -38,6 +38,11 @@ class UserPublic(BaseModel):
 
 class UserProfileResponse(UserResponse):
     posts: list[PostResponse]
+
+class UserUpdate(BaseModel):
+    username: str
+    email: EmailStr
+
 class PostBase(BaseModel):
     title: str = Field(min_length=1, max_length=100)
     content: str = Field(min_length=1)
@@ -77,3 +82,10 @@ class CommentResponse(CommentBase):
     id: int
     date_posted: datetime
     author: UserResponse
+
+class PasswordChange(BaseModel):
+    current_password: str = Field(min_length=6)
+    new_password: str = Field(min_length=6)
+
+class DeleteAccountRequest(BaseModel):
+    password: str
