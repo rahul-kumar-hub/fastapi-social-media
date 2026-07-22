@@ -127,7 +127,7 @@ form.addEventListener("submit", async (e) => {
 
             setTimeout(() => {
 
-                window.location.href = "/login";
+                window.location.replace("/login");
 
             }, 1500);
 
