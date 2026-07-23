@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse, JSONResponse
 from starlette.status import HTTP_401_UNAUTHORIZED
 from sqlalchemy import select,func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from database import Base,engine,get_db
 import models
 from routers import users, posts, comments, pages
@@ -32,6 +32,10 @@ def home(
 ):
     result = db.execute(
         select(models.Post)
+        .options(
+            selectinload(models.Post.author),
+            selectinload(models.Post.likes),
+        )
         .order_by(models.Post.date_posted.desc())
     )
     posts = result.scalars().all()

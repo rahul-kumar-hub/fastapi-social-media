@@ -57,8 +57,10 @@ class PostResponse(PostBase):
     author: UserPublic
     cover_image: str | None
     cover_image_path: str
+    like_count: int=0
+    comment_count: int=0
     is_saved: bool = False
-    # likes_count:int=0
+
 class PostUpdate(BaseModel):  
     title: str | None = Field(default=None, min_length=1, max_length=100)
     content: str | None = Field(default=None, min_length=1)
@@ -90,3 +92,8 @@ class PasswordChange(BaseModel):
 
 class DeleteAccountRequest(BaseModel):
     password: str
+
+class LikeResponse(BaseModel):
+    message: str
+    like_count: int
+    liked: bool

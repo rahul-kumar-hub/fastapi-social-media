@@ -15,6 +15,10 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 from auth import get_optional_current_user
 from utils.post_image import process_post_image
+from utils.post_stats import (
+    get_like_counts,
+    get_comment_counts,
+)
 
 router = APIRouter(
     prefix="/posts",
@@ -121,9 +125,22 @@ def get_posts(
     # Execute Query
     result = db.execute(query)
     posts = result.scalars().all()
+    like_counts = get_like_counts(db)
+    comment_counts = get_comment_counts(db)
+    items = []
+
+    for post in posts:
+
+        item = schemas.PostResponse.model_validate(post)
+
+        item.like_count = like_counts.get(post.id, 0)
+
+        item.comment_count = comment_counts.get(post.id, 0)
+
+        items.append(item)
     # Response
     return PaginatedPostsResponse(
-        items=posts,
+        items=items,
         total=total,
         page=page,
         size=size,
@@ -338,25 +355,36 @@ def blog_post(
         Depends(get_optional_current_user)
     ],
 ):
-   post = db.scalar(
-    select(models.Post)
-    .options(selectinload(models.Post.author))
-    .where(models.Post.id == post_id)
-)
-   if post is None:
-    raise HTTPException(
-        status_code=404,
-        detail="Post not found"
+    post = db.scalar(
+        select(models.Post)
+        .options(
+            selectinload(models.Post.author),
+            selectinload(models.Post.likes),
+            selectinload(models.Post.comments),
+        )
+        .where(models.Post.id == post_id)
     )
-   return templates.TemplateResponse(
-    request,
-    "post_detail.html",
-    {
-        "title": post.title,
-        "post": post,
-        "current_user":current_user,
-    }
-)
+    if post is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Post not found",
+        )
+    liked = False
+    if current_user:
+        liked = any(
+            like.user_id == current_user.id
+            for like in post.likes
+        )
+    return templates.TemplateResponse(
+        request,
+        "post_detail.html",
+        {
+            "title": post.title,
+            "post": post,
+            "current_user": current_user,
+            "liked": liked,
+        },
+    )
 @router.get("/{post_id}", response_model=PostResponse)
 def get_post(post_id: int, db: Annotated[Session, Depends(get_db)]):
     result = db.execute(
@@ -438,6 +466,7 @@ def delete_post(post_id: int, current_user:CurrentUser,db: Annotated[Session, De
 
 @router.post(
     "/{post_id}/like",
+    response_model=schemas.LikeResponse,
 )
 def toggle_like(post_id:int,
     current_user: CurrentUser,
@@ -457,6 +486,7 @@ def toggle_like(post_id:int,
     if existing_like:
         db.delete(existing_like)
         message = "Post unliked"
+        liked = False
     else:
         like = models.Like(
             user=current_user,
@@ -464,13 +494,15 @@ def toggle_like(post_id:int,
         )
         db.add(like)
         message = "Post liked"
+        liked = True
 
     db.commit()
     count = db.execute(
         select(func.count(models.Like.id))
         .where(models.Like.post_id==post_id)
     ).scalar_one()
-    return {
-        "message": message,
-        "like_count": count,
-    }
+    return schemas.LikeResponse(
+        message=message,
+        like_count=count,
+        liked=liked,
+    )

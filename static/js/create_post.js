@@ -1,4 +1,4 @@
-print("create_post endpoint reached")
+
 let postPublished = false;
 const form = document.getElementById("createPostForm");
 const button = form.querySelector("button");

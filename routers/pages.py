@@ -5,6 +5,9 @@ from auth import CurrentUser
 import models
 from auth import get_optional_current_user
 from fastapi.responses import RedirectResponse
+from sqlalchemy.orm import Session, selectinload
+from database import get_db
+from sqlalchemy import select, func
 
 router = APIRouter()
 
@@ -47,13 +50,23 @@ def register_page(
 def feed_page(
     request: Request,
     current_user: CurrentUser,
+    db: Annotated[Session, Depends(get_db)],
 ):
 
+    posts = db.scalars(
+        select(models.Post)
+        .options(
+            selectinload(models.Post.author),
+            selectinload(models.Post.likes),
+        )
+        .order_by(models.Post.date_posted.desc())
+    ).all()
     return templates.TemplateResponse(
         request,
         "feed.html",
         {
             "title": "Feed",
+            "posts": posts,
             "current_user": current_user,
         }
     )

@@ -11,7 +11,7 @@
     {% else %}
     <a href="/" class="btn btn-outline-primary">
         ← Back to Home
-        
+
     </a>
     {% endif %}
 
@@ -58,10 +58,38 @@
             </div>
 
             <div class="mt-5">
+                <button id="likeButton" class="btn {% if liked %}btn-danger{% else %}btn-outline-danger{% endif %}"
+                    data-post-id="{{ post.id }}">
+                    ❤️ <span id="likeText">
+                        {% if liked %}
+                        Unlike
+                        {% else %}
+                        Like
+                        {% endif %}
+                    </span>
 
-                <button class="btn btn-danger">
+                    (<span id="likeCount">{{ post.likes|length }}</span>)
+                </button>
+            </div>
+            <hr class="my-5">
 
-                    ❤️ Like
+            <h4>Comments</h4>
+
+            <div id="commentsContainer">
+
+                <div class="text-muted">
+                    Loading comments...
+                </div>
+
+            </div>
+            <div class="mt-4">
+
+                <textarea id="commentInput" class="form-control" rows="3" placeholder="Write a comment...">
+    </textarea>
+
+                <button id="commentButton" class="btn btn-primary mt-3">
+
+                    Post Comment
 
                 </button>
 
@@ -73,4 +101,7 @@
 
 </div>
 
+{% endblock %}
+{% block scripts %}
+<script src="/static/js/post_detail.js"></script>
 {% endblock %}
