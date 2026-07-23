@@ -1,3 +1,4 @@
+print("create_post endpoint reached")
 let postPublished = false;
 const form = document.getElementById("createPostForm");
 const button = form.querySelector("button");
@@ -13,9 +14,9 @@ const savedContent = localStorage.getItem("draft_content");
 const coverImage = document.getElementById("coverImage");
 const coverPreview = document.getElementById("coverPreview");
 
-coverImage.addEventListener("change", ()=>{
+coverImage.addEventListener("change", () => {
     const file = coverImage.files[0];
-    if(!file){
+    if (!file) {
         return;
     }
     coverPreview.src =
@@ -105,18 +106,32 @@ form.addEventListener("submit", async (e) => {
 `;
 
     try {
+        const formData = new FormData();
+
+        formData.append(
+            "title",
+            title.value
+        );
+
+        formData.append(
+            "content",
+            content.value
+        );
+
+        if (coverImage.files.length > 0) {
+
+            formData.append(
+                "cover_image",
+                coverImage.files[0]
+            );
+
+        }
         const response = await fetch(
             "/posts",
             {
                 method: "POST",
                 credentials: "include",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    title: title.value,
-                    content: content.value
-                })
+                body: formData,
             }
         );
         if (response.ok) {
@@ -127,6 +142,7 @@ form.addEventListener("submit", async (e) => {
             window.location.href = `/posts/blog/${post.id}`;
         } else {
             const error = await response.json();
+            console.log(error);
             message.innerHTML = `
         <div class="alert alert-danger">
             ${error.detail}
@@ -135,7 +151,7 @@ form.addEventListener("submit", async (e) => {
             button.disabled = false;
             button.innerText = "Publish Story";
         }
-    } catch(error) {
+    } catch (error) {
         console.error(error);
         message.innerHTML = `
     <div class="alert alert-danger">

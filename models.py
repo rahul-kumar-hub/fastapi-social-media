@@ -94,6 +94,12 @@ class Post(Base):
     saved_by: Mapped[list["SavedPost"]] = relationship(
         cascade="all, delete-orphan"
     )
+    @property
+    def cover_image_path(self) -> str:
+        if self.cover_image:
+            return f"/media/post_covers/{self.cover_image}"
+        return "/static/profile_pics/default.jpg"
+    
 class Comment(Base):
     __tablename__ = "comments"
 

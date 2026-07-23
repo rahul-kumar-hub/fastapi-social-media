@@ -56,6 +56,7 @@ class PostResponse(PostBase):
     date_posted:datetime
     author: UserPublic
     cover_image: str | None
+    cover_image_path: str
     is_saved: bool = False
     # likes_count:int=0
 class PostUpdate(BaseModel):  

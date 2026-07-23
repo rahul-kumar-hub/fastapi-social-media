@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, File, Form, UploadFile
 from sqlalchemy.orm import Session
 from sqlalchemy import select,func, or_
 import math 
@@ -14,6 +14,7 @@ from fastapi import Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 from auth import get_optional_current_user
+from utils.post_image import process_post_image
 
 router = APIRouter(
     prefix="/posts",
@@ -47,13 +48,22 @@ def create_post_page(
     status_code=status.HTTP_201_CREATED,
 )
 def create_post(
-    post_data: PostCreate,
+
     current_user: CurrentUser,
     db: Annotated[Session, Depends(get_db)],
+    title: str = Form(...),
+    content: str = Form(...),
+    cover_image: UploadFile | None = File(None),
 ):
+    filename = "default_cover.jpg"
+    if cover_image:
+        content_bytes = cover_image.file.read()
+        filename = process_post_image(content_bytes)
+
     new_post = models.Post(
-        title=post_data.title,
-        content=post_data.content,
+        title=title,
+        content=content,
+        cover_image=filename,
         user_id=current_user.id,
     )
     db.add(new_post)
