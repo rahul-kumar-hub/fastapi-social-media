@@ -8,7 +8,7 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
     )
 
-    DATABASE_URL: str = "sqlite:///./blog.db"
+    DATABASE_URL: str
 
     secret_key: SecretStr
 
